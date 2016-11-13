@@ -41,6 +41,14 @@ class NotebookLoader:
         url_segment = '/'.join([s.replace('_', ' ') for s in parts]) + '.ipynb?format=raw'
         url = 'https://paws-public.wmflabs.org/paws-public/User:' + url_segment
         resp = requests.get(url)
+        if resp.status_code == 404:
+            # HACCKK!! To deal with folders
+            mod = types.ModuleType(fullname)
+            mod.__file__ = fullname
+            mod.__loader__ = self
+            mod.__path__ = fullname
+            sys.modules[fullname] = mod
+            return mod
         if resp.status_code != 200:
             raise ImportError('No module {name} found - {code} response for {url}'.format(
                 name=fullname,
